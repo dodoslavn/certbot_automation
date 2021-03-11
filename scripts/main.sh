@@ -19,6 +19,27 @@ renew()
 
 	DR="/var/www/cert/"$SA_SSL
 
+	if [ -z "$SN_SSL" ]
+		then
+		echo error 1
+		exit
+		fi
+        if [ -z "$SN_NONSSL" ]
+                then
+                echo error 2 
+                exit
+                fi
+        if [ -z "$SA_SSL" ]
+                then
+                echo error 3 
+                exit
+                fi
+        if [ -z "$SN_NONSSL" ]
+                then
+                echo error 4 
+                exit
+                fi
+
 	cp $FILE_NONSSL $FILE_NONSSL".tmp"
         cp $FILE_SSL $FILE_SSL".tmp"
 
@@ -76,6 +97,12 @@ renew()
 for SERVER in $( cat $APACHE_LIST_F )
 	do
 	echo Working on server \"$SERVER\"
+	TIMESTAMP=$( date '+%Y.%m.%d_%H:%M:%S' )
+	echo Making backup with timestamp: $TIMESTAMP
+	mkdir "/etc/"$SERVER"/sites-enabled_"$TIMESTAMP
+	mkdir "/etc/"$SERVER"/sites-available_"$TIMESTAMP
+	cp /etc/"$SERVER"/sites-enabled/* "/etc/"$SERVER"/sites-enabled_"$TIMESTAMP/
+	cp /etc/"$SERVER"/sites-available/* "/etc/"$SERVER"/sites-available_"$TIMESTAMP/
 
 	for SITE in $(ls -l "/etc/"$SERVER"/sites-enabled/" | rev | awk '{ print $3 }' | rev | cut -d"-" -f1 | uniq ) 
 		do
