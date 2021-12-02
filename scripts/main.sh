@@ -1,124 +1,111 @@
 #!/bin/bash
 
+cd $(dirname $0)
 
-APACHE_LIST_F="../conf/apache_servers.csv"
+if [ -z "$1" ]
+	then
+	echo ERROR: First parameters needs to be apache server name
+	echo File: ../conf/apache_servers.csv
+	echo
+	cat ../conf/apache_servers.csv | grep -v ^# 
+	exit 1
+	fi
 
+SERVER=$1
 
+POM=$( grep $SERVER ../conf/apache_servers.csv )
+if [ -z "$POM" ]
+	then
+	echo ERROR: Server is not found in list!
+	echo File: ../conf/apache_servers.csv
+	echo
+        cat ../conf/apache_servers.csv | grep -v ^#
+	exit 2
+	fi
 
-renew()
-	{
-	POM=$1	
-	FILE_SSL=$(ls -l "/etc/"$SERVER"/sites-available/"$POM* | rev | awk '{ print $1 }' | rev | grep "\-le-ssl.conf" | grep -v ".tmp" )
-	FILE_NONSSL=$(ls -l "/etc/"$SERVER"/sites-available/"$POM* | rev | awk '{ print $1 }' | rev | grep -v "\-le-ssl.conf" | grep -v ".tmp" )
+POM=$( ls /etc/"$SERVER"/ 2>/dev/null )
+if [ -z "$POM" ]
+        then
+        echo ERROR: Server is not found on this machine!
+	ls /etc/apache2*
+        exit 3 
+        fi
 
-	SN_SSL=$( cat $FILE_SSL | grep ServerName | awk '{ print $2 }' )
-	SN_NONSSL=$( cat $FILE_NONSSL | grep ServerName | awk '{ print $2 }' )
+S_USER=$(grep $SERVER';' ../conf/apache_servers.csv | cut -d';' -f2)
+chmod -R 777 /var/www/cert/ 
 
-        SA_SSL=$( cat $FILE_SSL | grep ServerAlias | awk '{ print $2 }' )
-        SA_NONSSL=$( cat $FILE_NONSSL | grep ServerAlias | awk '{ print $2 }' )
+SERVICE_EXT=$( echo $SERVER | sed 's/apache2//' )
+if ! [ -z "$SERVICE_EXT" ]
+	then
+	SERVER_EXT="@"$SERVICE_EXT
+	fi
 
-	DR="/var/www/cert/"$SA_SSL
+a2dissite$SERVICE_EXT 000-certbot.conf 1>/dev/null 
 
-	if [ -z "$SN_SSL" ]
+for FILE in $( ls /etc/"$SERVER"/sites-enabled/ | grep "ssl" )
+	do
+	FILE=$( echo $FILE | sed 's/-le-ssl.conf/\.conf/' )
+	a2dissite$SERVICE_EXT $FILE 1>/dev/null
+	a2dissite$SERVICE_EXT $( echo $FILE | sed 's/\.conf/-le-ssl.conf/' ) 1>/dev/null 2>&1
+
+	echo "################ "/etc/"$SERVER"/sites-available/$FILE
+	POM=$(cat /etc/"$SERVER"/sites-available/$FILE | grep ServerAlias )
+	if ! [ -z "$( echo $POM | grep \* )" ] 
 		then
-		echo error 1
+		echo WARNING: Wildcard found, skipping! 
+	 	break	
+		fi
+	ALIAS=$( echo $POM | awk '{ print $2 }' )
+	echo "################ "$ALIAS
+	mkdir -p /var/www/cert/$ALIAS/
+	echo $ALIAS" " > /var/www/cert/$ALIAS/test.html
+	echo $(date) >> /var/www/cert/$ALIAS/test.html
+	echo '
+<VirtualHost *:80>
+  ServerAlias '$ALIAS' 
+  ServerName '$ALIAS' 
+
+  DocumentRoot /var/www/cert/'$ALIAS'/
+
+  ErrorLog /var/www/cert/'$ALIAS'/error.log
+  CustomLog /var/www/cert/'$ALIAS'/access.log combined
+</VirtualHost>' > /etc/"$SERVER"/sites-available/000-certbot.conf
+	a2ensite$SERVICE_EXT 000-certbot.conf 1>/dev/null
+	systemctl restart apache2$SERVER_EXT
+	RC=$?
+	if [ "$RC" -ne 0 ]
+		then
 		exit
 		fi
-        if [ -z "$SN_NONSSL" ]
-                then
-                echo error 2 
-                exit
-                fi
-        if [ -z "$SA_SSL" ]
-                then
-                echo error 3 
-                exit
-                fi
-        if [ -z "$SN_NONSSL" ]
-                then
-                echo error 4 
-                exit
-                fi
-
-	cp $FILE_NONSSL $FILE_NONSSL".tmp"
-        cp $FILE_SSL $FILE_SSL".tmp"
-
-	mkdir -p $DR
-
-	echo '
-
-<VirtualHost *:80>
-  ServerName '$SN_NONSSL' 
-  ServerAlias '$SA_NONSSL'
-
-  DocumentRoot '$DR'/
-
-  RewriteEngine on
-  RewriteRule ^ https://'$SA_NONSSL'%{REQUEST_URI} [END,QSA,R=permanent]
-  RewriteCond %{SERVER_NAME} ='$SA_NONSSL'
-  RewriteRule ^ https://%{SERVER_NAME}%{REQUEST_URI} [END,NE,R=permanent]
-</VirtualHost>
-
-' > $FILE_NONSSL
-
-	echo '
-
-<IfModule mod_ssl.c>
-  <VirtualHost *:443>
-    ServerName '$SN_SSL' 
-    ServerAlias '$SA_SSL'
-
-    DocumentRoot '$DR'/ 
-
-    Include /etc/letsencrypt/options-ssl-apache.conf
-    SSLCertificateFile /etc/letsencrypt/live/'$SA_SSL'/fullchain.pem
-    SSLCertificateKeyFile /etc/letsencrypt/live/'$SA_SSL'/privkey.pem
-  </VirtualHost>
-</IfModule>
-
-' > $FILE_SSL
-
-	systemctl reload $SERVER
-
-	echo "  ############# $SA_NONSSL ############"
-	certbot certonly -d $SA_NONSSL --non-interactive --agree-tos --webroot -w /var/www/cert/$SA_NONSSL/
-	echo "  ############# $SA_NONSSL ############"
 	
-	rm $FILE_NONSSL $FILE_SSL
-	mv $FILE_NONSSL".tmp" $FILE_NONSSL
-	mv $FILE_SSL".tmp" $FILE_SSL
+	sleep 1
+	wget -O - http://$ALIAS/test.html 2>/dev/null
+	certbot certonly -d $ALIAS --non-interactive --agree-tos --webroot -w /var/www/cert/$ALIAS/
+	RC=$?
+	if [ "$RC" -ne 0 ]
+                then
+                exit
+                fi
 
-	systemctl reload $SERVER
+	a2ensite$SERVICE_EXT $FILE 1>/dev/null
+	a2ensite$SERVICE_EXT $( echo $FILE | sed 's/\.conf/-le-ssl.conf/' ) 1>/dev/null 
+
+
+	a2dissite$SERVICE_EXT 000-certbot.conf 1>/dev/null
+	systemctl restart apache2
+        RC=$?
+        if [ "$RC" -ne 0 ]
+                then
+                exit
+                fi
+
+
 	sleep 3
-	}
+	
+	done 
 
 
 
-for SERVER in $( cat $APACHE_LIST_F )
-	do
-	echo Working on server \"$SERVER\"
-	TIMESTAMP=$( date '+%Y.%m.%d_%H:%M:%S' )
-	echo Making backup with timestamp: $TIMESTAMP
-	mkdir "/etc/"$SERVER"/sites-enabled_"$TIMESTAMP
-	mkdir "/etc/"$SERVER"/sites-available_"$TIMESTAMP
-	cp /etc/"$SERVER"/sites-enabled/* "/etc/"$SERVER"/sites-enabled_"$TIMESTAMP/
-	cp /etc/"$SERVER"/sites-available/* "/etc/"$SERVER"/sites-available_"$TIMESTAMP/
-
-	for SITE in $(ls -l "/etc/"$SERVER"/sites-enabled/" | rev | awk '{ print $3 }' | rev | cut -d"-" -f1 | uniq ) 
-		do
-		#echo $SITE	
-		if ! [ -z "$(ls -l "/etc/"$SERVER"/sites-enabled/"$SITE* | grep -v '.tmp' | rev | awk '{ print $3 }' | rev | grep "\-le-ssl.conf" )" ]
-			then
-			echo Certificate found for web $( ls -l "/etc/"$SERVER"/sites-enabled/"$SITE* | rev | awk '{ print $3 }' | rev | grep -v "\-le-ssl.conf" ) 
-			renew $SITE
-		else
-			echo Skipping $( ls -l "/etc/"$SERVER"/sites-enabled/"$SITE* | rev | awk '{ print $3 }' | rev ) 
-			fi 
-		done
-	chown www-data:www-data /etc/"$SERVER"/sites-enabled/*
-	chmod 770 /etc/"$SERVER"/sites-enabled/*
-
-	done
-
-
-
+chmod -R 700 /var/www/cert/
+chown -R $S_USER:$S_USER /etc/$SERVER/
+chmod -R 770 /etc/$SERVER/
