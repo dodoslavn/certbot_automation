@@ -42,6 +42,13 @@ if ! [ -z "$SERVICE_EXT" ]
 
 a2dissite$SERVICE_EXT 000-certbot.conf 1>/dev/null 
 
+systemctl restart apache2$SERVER_EXT
+RC=$?
+if [ "$RC" -ne 0 ]
+	then
+        exit
+        fi
+
 for FILE in $( ls /etc/"$SERVER"/sites-enabled/ | grep "ssl" )
 	do
 	FILE=$( echo $FILE | sed 's/-le-ssl.conf/\.conf/' )
