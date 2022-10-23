@@ -48,5 +48,6 @@ certbot certonly -d $DOMAIN --non-interactive --agree-tos --webroot -w /var/www/
 
 dissite$SERVICE_EXT 000-certbot-new_domain.conf 2>/dev/null
 rm /etc/$INSTANCE/sites-available/000-certbot-new_domain.conf
+systemctl reload apache2$SERVER_EXT
 
 #ls -l /etc/letsencrypt/live/$DOMAIN/
