@@ -2,6 +2,8 @@
 
 cd $(dirname $0)
 
+. ../conf/settings.sh
+
 if [ -z "$1" ]
 	then
 	echo ERROR: First parameters needs to be apache server name
@@ -116,3 +118,11 @@ for FILE in $( ls /etc/"$SERVER"/sites-enabled/ | grep "ssl" )
 chmod -R 700 /var/www/cert/
 chown -R $S_USER:$S_USER /etc/$SERVER/
 chmod -R 770 /etc/$SERVER/
+
+
+if [ "$RESTART_MAIL_SERVER" -eq 1 ]
+	then	
+	echo INFO: Restarting mail server
+	sudo systemctl restart postfix.service 
+	sudo systemctl restart dovecot.service 
+	fi

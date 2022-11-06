@@ -1,0 +1,3 @@
+#!/bin/bash
+
+RESTART_MAIL_SERVER=0
