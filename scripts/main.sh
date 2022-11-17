@@ -48,7 +48,7 @@ systemctl restart apache2$SERVER_EXT
 RC=$?
 if [ "$RC" -ne 0 ]
 	then
-        exit
+        exit 4
         fi
 
 for FILE in $( ls /etc/"$SERVER"/sites-enabled/ | grep "ssl" )
@@ -84,7 +84,7 @@ for FILE in $( ls /etc/"$SERVER"/sites-enabled/ | grep "ssl" )
 	RC=$?
 	if [ "$RC" -ne 0 ]
 		then
-		exit
+		exit 5
 		fi
 	
 	sleep 1
@@ -93,7 +93,7 @@ for FILE in $( ls /etc/"$SERVER"/sites-enabled/ | grep "ssl" )
 	RC=$?
 	if [ "$RC" -ne 0 ]
                 then
-                exit
+                exit 6
                 fi
 
 	a2ensite$SERVICE_EXT $FILE 1>/dev/null
@@ -105,7 +105,7 @@ for FILE in $( ls /etc/"$SERVER"/sites-enabled/ | grep "ssl" )
         RC=$?
         if [ "$RC" -ne 0 ]
                 then
-                exit
+                exit 7
                 fi
 
 
