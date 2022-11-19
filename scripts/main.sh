@@ -4,6 +4,7 @@ cd $(dirname $0)
 
 . ../conf/settings.sh
 
+
 if [ -z "$1" ]
 	then
 	echo ERROR: First parameters needs to be apache server name
@@ -42,7 +43,7 @@ if ! [ -z "$SERVICE_EXT" ]
 	SERVER_EXT="@"$SERVICE_EXT
 	fi
 
-a2dissite$SERVICE_EXT 000-certbot.conf 1>/dev/null 
+a2dissite$SERVICE_EXT $CERTBOT_VHOST_NAME 1>/dev/null 
 
 systemctl restart apache2$SERVER_EXT
 RC=$?
@@ -78,8 +79,8 @@ for FILE in $( ls /etc/"$SERVER"/sites-enabled/ | grep "ssl" )
 
   ErrorLog /var/www/cert/'$ALIAS'/error.log
   CustomLog /var/www/cert/'$ALIAS'/access.log combined
-</VirtualHost>' > /etc/"$SERVER"/sites-available/000-certbot.conf
-	a2ensite$SERVICE_EXT 000-certbot.conf 1>/dev/null
+</VirtualHost>' > /etc/"$SERVER"/sites-available/""$CERTBOT_VHOST_NAME
+	a2ensite$SERVICE_EXT $CERTBOT_VHOST_NAME 1>/dev/null
 	systemctl restart apache2$SERVER_EXT
 	RC=$?
 	if [ "$RC" -ne 0 ]
@@ -100,7 +101,7 @@ for FILE in $( ls /etc/"$SERVER"/sites-enabled/ | grep "ssl" )
 	a2ensite$SERVICE_EXT $( echo $FILE | sed 's/\.conf/-le-ssl.conf/' ) 1>/dev/null 
 
 
-	a2dissite$SERVICE_EXT 000-certbot.conf 1>/dev/null
+	a2dissite$SERVICE_EXT $CERTBOT_VHOST_NAME 1>/dev/null
 	systemctl restart apache2
         RC=$?
         if [ "$RC" -ne 0 ]
