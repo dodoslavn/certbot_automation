@@ -37,7 +37,7 @@ if [ -z "$POM" ]
 S_USER=$(grep $SERVER';' ../conf/apache_servers.csv | cut -d';' -f2)
 chmod -R 777 /var/www/cert/ 
 
-SERVICE_EXT=$( echo $SERVER | sed 's/apache2//' )
+SERVICE_EXT=$( echo $SERVER | sed 's/apache2//' | sed 's/^-//')
 if ! [ -z "$SERVICE_EXT" ]
 	then
 	SERVER_EXT="@"$SERVICE_EXT
