@@ -37,10 +37,10 @@ if [ -z "$POM" ]
 S_USER=$(grep $SERVER';' ../conf/apache_servers.csv | cut -d';' -f2)
 chmod -R 777 /var/www/cert/ 
 
-SERVICE_EXT=$( echo $SERVER | sed 's/apache2//' | sed 's/^-//')
+SERVICE_EXT=$( echo $SERVER | sed 's/apache2//' )
 if ! [ -z "$SERVICE_EXT" ]
 	then
-	SERVER_EXT="@"$SERVICE_EXT
+	SERVER_EXT="@"$( echo $SERVICE_EXT | sed 's/^-//' )
 	fi
 
 a2dissite$SERVICE_EXT $CERTBOT_VHOST_NAME 1>/dev/null 
