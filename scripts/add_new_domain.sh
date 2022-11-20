@@ -8,7 +8,7 @@ if [ -z "$1" ]
 	exit 1
 	fi
 INSTANCE=$1
-SERVICE_EXT=$( echo $INSTANCE | sed 's/apache2//' )
+SERVICE_EXT=$( echo $INSTANCE | sed 's/apache2//' | sed 's/^-//' )
 if ! [ -z "$SERVICE_EXT" ]
 	then
 	SERVER_EXT="@"$SERVICE_EXT
