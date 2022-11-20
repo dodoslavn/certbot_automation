@@ -46,7 +46,7 @@ systemctl reload apache2$SERVER_EXT
 
 certbot certonly -d $DOMAIN --non-interactive --agree-tos --webroot -w /var/www/cert/$DOMAIN/web/
 
-dissite$SERVICE_EXT 000-certbot-new_domain.conf 2>/dev/null
+a2dissite$SERVICE_EXT 000-certbot-new_domain.conf 2>/dev/null
 rm /etc/$INSTANCE/sites-available/000-certbot-new_domain.conf
 systemctl reload apache2$SERVER_EXT
 
