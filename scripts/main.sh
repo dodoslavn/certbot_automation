@@ -43,7 +43,8 @@ if ! [ -z "$SERVICE_EXT" ]
 	SERVER_EXT="@"$( echo $SERVICE_EXT | sed 's/^-//' )
 	fi
 
-a2dissite$SERVICE_EXT $CERTBOT_VHOST_NAME 1>/dev/null 
+a2dissite"$SERVICE_EXT" $CERTBOT_VHOST_NAME 
+#1>/dev/null 
 
 systemctl restart apache2$SERVER_EXT
 RC=$?
