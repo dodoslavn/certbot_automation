@@ -4,6 +4,12 @@ cd $(dirname $0)
 
 . ../conf/settings.sh
 
+if [ "$CONFIG" -ne 1 ]
+	then
+	echo some issue
+	exit 1
+	fi
+
 
 if [ -z "$1" ]
 	then
