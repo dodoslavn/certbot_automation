@@ -1,2 +1,2 @@
 #server_name;user_name
-#apache2;www-data
+apache2;www-data
