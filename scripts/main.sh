@@ -2,6 +2,15 @@
 
 cd $(dirname $0)
 
+. ../conf/settings.sh
+
+if [ "$CONFIG" -ne 1 ]
+	then
+	echo some issue
+	exit 1
+	fi
+
+
 if [ -z "$1" ]
 	then
 	echo ERROR: First parameters needs to be apache server name
@@ -37,16 +46,17 @@ chmod -R 777 /var/www/cert/
 SERVICE_EXT=$( echo $SERVER | sed 's/apache2//' )
 if ! [ -z "$SERVICE_EXT" ]
 	then
-	SERVER_EXT="@"$SERVICE_EXT
+	SERVER_EXT="@"$( echo $SERVICE_EXT | sed 's/^-//' )
 	fi
 
-a2dissite$SERVICE_EXT 000-certbot.conf 1>/dev/null 
+a2dissite"$SERVICE_EXT" $CERTBOT_VHOST_NAME 
+#1>/dev/null 
 
 systemctl restart apache2$SERVER_EXT
 RC=$?
 if [ "$RC" -ne 0 ]
 	then
-        exit
+        exit 4
         fi
 
 for FILE in $( ls /etc/"$SERVER"/sites-enabled/ | grep "ssl" )
@@ -76,13 +86,13 @@ for FILE in $( ls /etc/"$SERVER"/sites-enabled/ | grep "ssl" )
 
   ErrorLog /var/www/cert/'$ALIAS'/error.log
   CustomLog /var/www/cert/'$ALIAS'/access.log combined
-</VirtualHost>' > /etc/"$SERVER"/sites-available/000-certbot.conf
-	a2ensite$SERVICE_EXT 000-certbot.conf 1>/dev/null
+</VirtualHost>' > /etc/"$SERVER"/sites-available/""$CERTBOT_VHOST_NAME
+	a2ensite$SERVICE_EXT $CERTBOT_VHOST_NAME 1>/dev/null
 	systemctl restart apache2$SERVER_EXT
 	RC=$?
 	if [ "$RC" -ne 0 ]
 		then
-		exit
+		exit 5
 		fi
 	
 	sleep 1
@@ -91,19 +101,19 @@ for FILE in $( ls /etc/"$SERVER"/sites-enabled/ | grep "ssl" )
 	RC=$?
 	if [ "$RC" -ne 0 ]
                 then
-                exit
+                exit 6
                 fi
 
 	a2ensite$SERVICE_EXT $FILE 1>/dev/null
 	a2ensite$SERVICE_EXT $( echo $FILE | sed 's/\.conf/-le-ssl.conf/' ) 1>/dev/null 
 
 
-	a2dissite$SERVICE_EXT 000-certbot.conf 1>/dev/null
+	a2dissite$SERVICE_EXT $CERTBOT_VHOST_NAME 1>/dev/null
 	systemctl restart apache2
         RC=$?
         if [ "$RC" -ne 0 ]
                 then
-                exit
+                exit 7
                 fi
 
 
@@ -116,3 +126,11 @@ for FILE in $( ls /etc/"$SERVER"/sites-enabled/ | grep "ssl" )
 chmod -R 700 /var/www/cert/
 chown -R $S_USER:$S_USER /etc/$SERVER/
 chmod -R 770 /etc/$SERVER/
+
+
+if [ "$RESTART_MAIL_SERVER" -eq 1 ]
+	then	
+	echo INFO: Restarting mail server
+	sudo systemctl restart postfix.service 
+	sudo systemctl restart dovecot.service 
+	fi
