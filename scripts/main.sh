@@ -96,7 +96,7 @@ for FILE in $( ls /etc/"$SERVER"/sites-enabled/ | grep "ssl" )
 		fi
 	
 	sleep 1
-	wget -T 3 -O - http://$ALIAS/test.html 2>/dev/null
+	wget -T 3 -t 1 -O - http://$ALIAS/test.html 2>/dev/null
 	certbot certonly -d $ALIAS --non-interactive --agree-tos --webroot -w /var/www/cert/$ALIAS/
 	RC=$?
 	if [ "$RC" -ne 0 ]
