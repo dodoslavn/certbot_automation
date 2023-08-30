@@ -1,4 +1,6 @@
 #
+# Download this Git repo to the "CONF_DIR" path you set below and set the settings as you need
+#
 # How to configure Jenkins job:
 # Source Code Management
 #   Git
@@ -11,5 +13,6 @@
 #      @weekly
 # Build steps
 #   Execute shells
+#     export CONF_DIR=/your/directory/ 
 #     scripts/update_all.sh
 #  

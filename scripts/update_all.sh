@@ -13,7 +13,7 @@ cd $(dirname $0)
 if ! [ -a $CONF_DIR"settings.sh" ]
 	then
 	echo ERROR: Settings file not found!
-	echo $CONF_DIR"conf/settings.sh"
+	echo $CONF_DIR"settings.sh"
 	exit 1
 	fi
 
