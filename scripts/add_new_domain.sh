@@ -1,4 +1,6 @@
 #!/bin/bash
+# script to be run manually
+# script to create new vhost with new domain with new certificate
 
 DOCROOT="/var/www/cert/"
 

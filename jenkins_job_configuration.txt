@@ -1,0 +1,15 @@
+#
+# How to configure Jenkins job:
+# Source Code Management
+#   Git
+#     Repository URL
+#       https://github.com/dodoslavn/certbot_automation.git
+#     Branch Specifier
+#       */main
+#  Build Triggers
+#    Build periodically
+#      @weekly
+# Build steps
+#   Execute shells
+#     scripts/update_all.sh
+#  
