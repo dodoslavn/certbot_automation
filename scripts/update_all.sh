@@ -25,6 +25,8 @@ if ! [ -a $CONF_DIR"apache_servers.csv" ]
         exit 1
         fi
 
+mkdir -p $CONF_DIR'../logs/'
+
 for SERVER in $(grep -v ^# $CONF_DIR"apache_servers.csv" | cut -d';' -f1)
         do
         sudo /bin/su - root -c "$(pwd)/main.sh $SERVER" > $CONF_DIR'../logs/'$SERVER'.log'
