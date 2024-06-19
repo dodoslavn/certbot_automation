@@ -14,6 +14,16 @@ You might not have a chance to renew the certificate via DNS.
 If you want to renew the certificate via certbot, you NEED to have working "DocumentRoot", so when certbot will save the file into the folder of the website, you need to be able to retrieve it from outside via HTTP client. Which you CANNOT if you are running some service with Java and your web server serves just as a reverse proxy.  
 You can run this script every week and it will just do all your virtualhosts.
 
+## Included scripts
+- add_domain.sh
+  - this script is completely unrelated
+  - its only used when you want to add new domain and generate certificate for it
+  - it creates new basic virtualhost with your domain and generate the certificate for it
+- main.sh
+  - script which does the work
+- update_all.sh
+  - calls main.sh in a loop
+
 ## How to integrate with Jenkins  
 I like to run this script from Jenkins, so i can see if it failed and rerun comfortably.  
 Download this Git repo to the "CONF_DIR" path you set below and set the settings as you need.  
