@@ -2,6 +2,18 @@
 
 cd $(dirname $0)
 
+if ! [ -a ../conf/settings.sh ]
+        then
+        echo "ERROR: Settings file \"conf/settings.sh\" doesnt exist, copy the example file."
+        exit 5
+        fi
+
+if ! [ -a ../conf/apache_servers.csv ]
+        then
+        echo "ERROR: Apache server list file \"conf/apache_servers.csv\" doesnt exist, copy the example file."
+        exit 6
+        fi
+
 . ../conf/settings.sh
 
 if [ "$CONFIG" -ne 1 ]
