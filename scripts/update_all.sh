@@ -19,5 +19,5 @@ mkdir -p "../logs/"
 
 for SERVER in $(grep -v ^# "conf/apache_servers.csv" | cut -d';' -f1)
         do
-        sudo /bin/su - root -c "$(pwd)/scripts/main.sh $SERVER" | tee -a $SEVER"_"$FILEN
+        sudo /bin/su - root -c "$(pwd)/scripts/main.sh $SERVER" | tee -a $SERVER"_"$FILEN
         done
