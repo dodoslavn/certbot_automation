@@ -2,32 +2,25 @@
 
 cd $(dirname $0)
 
-if [ -z "$CONF_DIR" ]
-	then
-	cd $(dirname $0)
-	cd ..
-	CONF_DIR=$(pwd)"/conf/"
-	fi
 
-if ! [ -a "$CONF_DIR""settings.sh" ]
+if ! [ -a "../conf/settings.sh" ]
 	then
 	echo ERROR: Settings file not found!
-	echo $CONF_DIR"settings.sh"
 	exit 1
 	fi
 
-. "$CONF_DIR""settings.sh"
-
-if ! [ -a "$CONF_DIR""apache_servers.csv" ]
+if ! [ -a "../conf/apache_servers.csv" ]
         then
         echo ERROR: File with server list not found!
-        exit 1
+        exit 2
         fi
 
-mkdir -p "$CONF_DIR"'../logs/'
-rm -f "$CONF_DIR"'../logs/'$SERVER'.log'
+.  "../conf/settings.sh"
+FILEN="_"$( date '+%Y.%m.%d_%H:%M:%S' )".log"
 
-for SERVER in $(grep -v ^# "$CONF_DIR""apache_servers.csv" | cut -d';' -f1)
+mkdir -p "../logs/"
+
+for SERVER in $(grep -v ^# "../conf/apache_servers.csv" | cut -d';' -f1)
         do
-        sudo /bin/su - root -c "$(pwd)/scripts/main.sh $SERVER" | tee -a "$CONF_DIR"'../logs/'$SERVER'.log'
+        sudo /bin/su - root -c "$(pwd)/main.sh $SERVER" | tee -a $SEVER"_"$FILEN
         done
