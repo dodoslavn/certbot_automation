@@ -1,5 +1,6 @@
 #!/bin/bash
 
+cd $(dirname $0)
 
 if [ -z "$CONF_DIR" ]
 	then
@@ -7,8 +8,6 @@ if [ -z "$CONF_DIR" ]
 	cd ..
 	CONF_DIR=$(pwd)"/conf/"
 	fi
-
-cd $(dirname $0)
 
 if ! [ -a $CONF_DIR"settings.sh" ]
 	then
