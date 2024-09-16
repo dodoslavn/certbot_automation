@@ -2,6 +2,8 @@
 
 #cd '$(dirname $0)'
 
+pwd
+
 if ! [ -a 'conf/settings.sh' ]
 	then
 	echo "ERROR: Settings file not found!"
