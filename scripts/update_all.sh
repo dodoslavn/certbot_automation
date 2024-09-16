@@ -1,15 +1,15 @@
 #!/bin/bash
 
-cd "$(dirname $0)"
+cd '$(dirname $0)'
 
 
-if ! [ -a "../conf/settings.sh" ]
+if ! [ -a '../conf/settings.sh' ]
 	then
 	echo "ERROR: Settings file not found!"
 	exit 1
 	fi
 
-if ! [ -a "../conf/apache_servers.csv" ]
+if ! [ -a '../conf/apache_servers.csv' ]
         then
         echo "ERROR: File with server list not found!"
         exit 2
